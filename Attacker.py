@@ -109,7 +109,7 @@ def main():
         cookies = ReceiveCookies(ip, port);
 
         if(not cookies):
-            print("No se pudieron obtener las cookies, el navegador esta activo!")
+            print("Could not get cookies, browser is active!")
  
 
     except socket.timeout:

