@@ -1,10 +1,4 @@
 import socket, ast, argparse, sys, re;
-from art import *
-from termcolor import colored
-from rich.console import Console;
-from rich.panel import Panel;
-from rich.markdown import Markdown;
-
 
 
 def GenerateAscii(text, font, color):
