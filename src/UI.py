@@ -34,8 +34,7 @@ class MarkdownComponent(UIComponent):
 
     
     def GenerateMarkdown(self):
-        markdownObject = Markdown(self.text)
-        return markdownObject;
+        return Markdown(self.text);
 
     
     def Draw(self):
