@@ -7,6 +7,9 @@ def GetFirefoxCookies():
 
     homeDirectory = os.path.expanduser("~");
 
+
+
+
     os.chdir(homeDirectory)    
     os.chdir(".mozilla/firefox") 
 

