@@ -4,7 +4,6 @@ import os, socket, platform, sqlite3;
 
 # * Classes to detect Operating System
 class OSInterface(ABC):
-
     @abstractmethod
     def DetectOperatingSystem(self):
         pass
@@ -115,7 +114,7 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
             
 
 
-    def GetCookiesInWindows(self, username):
+    def GetCookiesInWindows(self):
         pass
 
 
