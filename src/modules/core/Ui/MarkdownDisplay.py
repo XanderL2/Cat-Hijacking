@@ -1,4 +1,4 @@
-from modules.core.Ui.UiInterface import UIComponent
+from modules.core.Ui.interface.UiInterface import UIComponent
 
 from rich.console import Console;
 from rich.panel import Panel;

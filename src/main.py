@@ -32,19 +32,28 @@ def main():
 
 
     # Drawing cover
-    asciiRenderer = AsciiArt("Py Hijacking ", "sblood", "magenta");
+    asciiR = AsciiArt("Cat Hijacking ", "sblood", "cyan");
 
     ip = "192.168.1.100"
     port = "8080"
 
     
     with open("./assets/cover.md", "r") as file:
-        markdownData = file.read().format(asciiArt=asciiRenderer.GenerateAscii(), ip=ip, port=port);
-
+        markdownData = file.read().format(asciiArt=asciiR.GenerateAscii(), ip=ip, port=port);
 
 
     markdownRender = MarkdownComponent(markdownData)
     markdownRender.Draw()    
+
+
+    
+    asciiR.Warn("Wait connections");
+
+
+
+
+
+
     
 
 
