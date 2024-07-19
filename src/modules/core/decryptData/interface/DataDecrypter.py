@@ -5,6 +5,6 @@ class DataDecrypter(ABC):
 
 
     @abstractmethod
-    def __DecryptWithKey(self, data):
+    def _DecryptWithKey(self, data):
         pass
 

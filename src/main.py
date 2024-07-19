@@ -79,7 +79,7 @@ def main():
     decrypter = CookieesDecrypter(salt, baseKey, loginsData);
 
 
-    print(decrypter.DecryptLogins());
+    decrypter.DecryptLogins();
 
     
 

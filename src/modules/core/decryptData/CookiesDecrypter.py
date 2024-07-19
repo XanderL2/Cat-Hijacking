@@ -21,14 +21,25 @@ class CookieesDecrypter(DataDecrypter):
         return PBKDF2(self.__baseKey, self.__salt, dkLen=32, count=4096); 
         
 
-    def __DecryptWithKey(self, data):
+    def _DecryptWithKey(self, data):
 
+        print(f"Data base64: {data}")
         encryptedData = base64.b64decode(data);
         key = self.__GetMasterKey();
         iv = encryptedData[:16];  #? Is a random value that makes an encrypted text unique 
         cipherText = encryptedData[16:]; 
 
         cipher = AES.new(key, AES.MODE_CBC, iv);
+
+        print(f"IV en Python: {iv}");
+        print(f"Data decodificada en Python {encryptedData}");
+
+
+        if len(iv) != 16:
+            raise ValueError("IV length is not 16 bytes")
+        if len(cipherText) % 16 != 0:
+            raise ValueError("CipherText length is not a multiple of 16 bytes")
+
         decryptData = unpad(cipher.decrypt(cipherText), AES.block_size);
 
         return decryptData.decode("utf-8");
@@ -37,9 +48,15 @@ class CookieesDecrypter(DataDecrypter):
     def DecryptLogins(self):
 
         for login in self.__logins:
-            print(login["id"]);
-            print(login["encryptedUsername"]);
-            print(login["encryptedPassword"]);
+            # print(f"ID: {login['id']}");
+            # print(f"Username: {login['encryptedUsername']}");
+            # print(f"Password: {login['encryptedPassword']}");
+
+            print(f"ID: {login['id']}");
+
+            print(f"Username: {self._DecryptWithKey(login['encryptedUsername'])}");
+            print(f"Password: {self._DecryptWithKey(login['encryptedPassword'])}");
+
             
 
          
