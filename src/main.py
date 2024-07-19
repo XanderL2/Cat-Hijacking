@@ -12,16 +12,16 @@ import argparse, re, sys, time, json, base64
 
 def main():
 
-    # Parameters with console
-    # parser = argparse.ArgumentParser(description='Session Hijacking Script');
+    #Parameters with console
+    parser = argparse.ArgumentParser(description='Session Hijacking Script');
 
-    # parser.add_argument("-ip", "--VictimIP", required=True, type=str, help="Victim's IP to receive the data");
-    # parser.add_argument("-p", "--ConnectionPort", required=False, type=int, default=8000, help="Connection port to receive cookies");
+    parser.add_argument("-ip", "--VictimIP", required=True, type=str, help="Victim's IP to receive the data");
+    parser.add_argument("-p", "--ConnectionPort", required=False, type=int, default=8000, help="Connection port to receive cookies");
 
 
-    # args = parser.parse_args();
-    # ip = args.VictimIP;
-    # port = args.ConnectionPort; 
+    args = parser.parse_args();
+    ip = args.VictimIP;
+    port = args.ConnectionPort; 
 
 
 
